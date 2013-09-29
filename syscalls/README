@@ -1,0 +1,23 @@
+1. Compile linux (ubuntu) kernel from apt-get source - linux 3.8
+
+ * fakeroot debian/rules clean
+ * AUTOBUILD=1 NOEXTRAS=1 fakeroot debian/rules binary-generic
+ 
+ * sudo dpkg -i <our_image>
+ * sudo dpkg -i <our headers>
+
+2. Adding our syscall
+
+ * Edit include/linux/syscalls.h
+   * Add signature of our syscall like : asmlinkage long our_syscall();
+
+ * Edit arch/x86/syscall_32.tbl
+   * Adapt for your arch
+   * Add syscall like : <num> <arch/abi> <name> <entry point>
+   * For previous exemple : <previous num + 1> i386 our_syscall our_syscall
+
+ * Rebuild kernel
+
+3. Adding our module
+
+ * Take an existing syscall that we will overloaded
