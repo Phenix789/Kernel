@@ -3,6 +3,7 @@
 #include <linux/init.h>
 #include <linux/syscalls.h>
 
+/*
 #define SYSCALL_REPLACE 352
 
 typedef unsigned long addr_t;
@@ -36,13 +37,13 @@ static addr_t ** get_systable_addr(void)
 //Unlock write in read-only memory
 static void unlock_write(void)
 {
-	write_cr0(read_cr0() | 0x10000);
+//	write_cr0(read_cr0() | 0x10000);
 }
 
 //Lock write in read-only memory
 static void  lock_write(void)
 {
-	write_cr0(read_cr0() & 0x10000);
+//	write_cr0(read_cr0() & 0x10000);
 }
 
 //Init
@@ -73,7 +74,22 @@ static void __exit my_module_exit(void)
 
 	printk(KERN_INFO "... done!");
 }
+*/
+
+int my_module_init(void)
+{
+	printk(KERN_INFO "Load My Module\n");
+
+	return 0;
+}
+
+void my_module_exit(void)
+{
+	printk(KERN_INFO "Unload My Module\n");
+}
 
 //Module
 module_init(my_module_init);
 module_exit(my_module_exit);
+
+MODULE_LICENSE("GPL");
