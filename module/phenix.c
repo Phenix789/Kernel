@@ -1,94 +1,121 @@
-#include <linux/module.h>
 #include <linux/kernel.h>
+#include <linux/linkage.h>
+#include <linux/module.h>
 #include <linux/init.h>
 #include <linux/syscalls.h>
+#include <linux/unistd.h>
 
-/*
-#define SYSCALL_REPLACE 352
+//Address
+#if defined __X86_64__
+#define __POINTER_TYPE 	uint64_t
+#define BEGIN_ADDR 	((addr_t) 0xffffffff81000000)
+#define END_ADDR 	((addr_t) 0xffffffffa2000000)
+#define SPK 		"%lX"
+#elif defined __i386__
+#define __POINTER_TYPE 	uint32_t
+#define BEGIN_ADDR	((addr_t) 0xc0000000)
+#define END_ADDR	((addr_t) 0xd0000000)
+#define SPK 		"%X"
+#else
+#error "Incorrect architecture"
+#endif
 
-typedef unsigned long addr_t;
+typedef __POINTER_TYPE * addr_t;
 
-addr_t ** systable = NULL;
-addr_t * replaced = NULL;
+#define __FIRST_SYSCALL_ADDR 	sys_close
+#define __FIRST_SYSCALL_NUM 	__NR_close
+#define INSERT_INDEX 352
 
-//Fake Syscall
-long my_loaded_syscall(void * params)
+static addr_t sys_saved = NULL;
+
+/**
+ *
+ *
+ */
+asmlinkage long sys_dynamic_phenix(void * params)
 {
-	printk(KERN_INFO "Call loaded syscall");
-	return 0;
+	printk(KERN_INFO "Call my dynamic syscall with address :" SPK "\n", (__POINTER_TYPE) params);
+
+	return 12345;
 }
 
-//Systable
-static addr_t ** get_systable_addr(void)
+/**
+ *
+ *
+ */
+addr_t * find_systable(void)
 {
-	//Start at begin of memory
-	addr_t * begin = 0;
-	addr_t search = (addr_t) &sys_close;
+	addr_t * table;
+	addr_t i = BEGIN_ADDR;
 
-	while (1) {
-		if (*begin == search) {
-			//Found systable
-			return (addr_t **) begin;
+	while (i < END_ADDR) {
+		table = (addr_t *) i;
+		if (table[__FIRST_SYSCALL_NUM] == (addr_t) __FIRST_SYSCALL_ADDR) {
+			printk(KERN_INFO "Syscall table found at " SPK "\n", (__POINTER_TYPE) table);
+			return table;
 		}
-		begin++;
+		i++;
 	}
+
+	return NULL;
 }
 
-//Unlock write in read-only memory
-static void unlock_write(void)
-{
-//	write_cr0(read_cr0() | 0x10000);
-}
-
-//Lock write in read-only memory
-static void  lock_write(void)
-{
-//	write_cr0(read_cr0() & 0x10000);
-}
-
-//Init
-static int __init my_module_init(void)
-{
-	printk(KERN_INFO "Load My Module ...");
-
-	systable = get_systable_addr();
-
-	unlock_write();
-	replaced = systable[SYSCALL_REPLACE];
-	systable[SYSCALL_REPLACE] = (addr_t *) &my_loaded_syscall;
-	lock_write();
-
-	printk(KERN_INFO "... done!");
-
-	return 0;
-}
-
-//Exit
-static void __exit my_module_exit(void)
-{
-	printk(KERN_INFO "Unload My Module ...");
-
-	unlock_write();
-	systable[SYSCALL_REPLACE] = replaced;
-	lock_write();
-
-	printk(KERN_INFO "... done!");
-}
-*/
-
+/**
+ *
+ *
+ */
 int my_module_init(void)
 {
+	addr_t * table;
+
 	printk(KERN_INFO "Load My Module\n");
+
+	table = find_systable();
+
+	if (table == NULL) {
+		return -1;
+	}
+
+	//Unlock write memory
+	write_cr0(read_cr0() & (~ 0x10000));
+
+	//Change syscall
+	sys_saved = table[INSERT_INDEX];
+	table[INSERT_INDEX] = (addr_t) sys_dynamic_phenix;
+
+	//Lock write memory
+	write_cr0(read_cr0() | 0x10000);
 
 	return 0;
 }
 
+/**
+ *
+ *
+ */
 void my_module_exit(void)
 {
+	addr_t * table;
+
 	printk(KERN_INFO "Unload My Module\n");
+
+	table = find_systable();
+
+	if (table == NULL || sys_saved != NULL) {
+		return;
+	}
+
+	//Unlock write memory
+	write_cr0(read_cr0() & (~ 0x10000));
+
+	//Replace syscall
+	table[INSERT_INDEX] = sys_saved;
+
+	//Lock write memory
+	write_cr0(read_cr0() | 0x10000);
 }
 
-//Module
+//Module register
 module_init(my_module_init);
 module_exit(my_module_exit);
 
