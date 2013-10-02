@@ -18,3 +18,10 @@
 
 #Linux source
 linux-*
+
+#Other
+.*
+*.ko
+*.symvers
+*.order
+*.mod.c

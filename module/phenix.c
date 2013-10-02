@@ -34,7 +34,7 @@ static addr_t sys_saved = NULL;
  */
 asmlinkage long sys_dynamic_phenix(void * params)
 {
-	printk(KERN_INFO "Call my dynamic syscall with address :" SPK "\n", (__POINTER_TYPE) params);
+	printk(KERN_INFO "Call my dynamic syscall with address : " SPK "\n", (__POINTER_TYPE) params);
 
 	return 12345;
 }
@@ -68,7 +68,7 @@ int my_module_init(void)
 {
 	addr_t * table;
 
-	printk(KERN_INFO "Load My Module\n");
+	printk(KERN_INFO "Load My Module ...\n");
 
 	table = find_systable();
 
@@ -86,6 +86,8 @@ int my_module_init(void)
 	//Lock write memory
 	write_cr0(read_cr0() | 0x10000);
 
+	printk(KERN_INFO "... done!\n");
+
 	return 0;
 }
 
@@ -97,7 +99,7 @@ void my_module_exit(void)
 {
 	addr_t * table;
 
-	printk(KERN_INFO "Unload My Module\n");
+	printk(KERN_INFO "Unload My Module ...\n");
 
 	table = find_systable();
 
@@ -113,6 +115,8 @@ void my_module_exit(void)
 
 	//Lock write memory
 	write_cr0(read_cr0() | 0x10000);
+
+	printk(KERN_INFO "... done!\n");
 }
 
 //Module register
