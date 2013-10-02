@@ -3,7 +3,6 @@
 #include <stdio.h>
 
 int main() {
-	long i = printf("%ld\n", syscall(352, NULL));
-	printf("Syscall return : %lX\n", i);
+	printf("Syscall return %ld\n", syscall(352, NULL));
 	return 0;
 }
