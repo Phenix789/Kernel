@@ -1,0 +1,32 @@
+diff -r -u /home/kernel/kernel.src/linux-lts-raring-3.8.0/arch/x86/syscalls/syscall_32.tbl /home/kernel/kernel/linux-lts-raring-3.8.0/arch/x86/syscalls/syscall_32.tbl
+--- /home/kernel/kernel.src/linux-lts-raring-3.8.0/arch/x86/syscalls/syscall_32.tbl	2013-02-19 00:58:34.000000000 +0100
++++ /home/kernel/kernel/linux-lts-raring-3.8.0/arch/x86/syscalls/syscall_32.tbl	2013-09-29 20:02:02.706121552 +0200
+@@ -357,3 +357,5 @@
+ 348	i386	process_vm_writev	sys_process_vm_writev		compat_sys_process_vm_writev
+ 349	i386	kcmp			sys_kcmp
+ 350	i386	finit_module		sys_finit_module
++351	i386	phenix			sys_phenix
++352	i386	trash			sys_trash
+diff -r -u /home/kernel/kernel.src/linux-lts-raring-3.8.0/include/linux/syscalls.h /home/kernel/kernel/linux-lts-raring-3.8.0/include/linux/syscalls.h
+--- /home/kernel/kernel.src/linux-lts-raring-3.8.0/include/linux/syscalls.h	2013-10-03 21:07:02.000000000 +0200
++++ /home/kernel/kernel/linux-lts-raring-3.8.0/include/linux/syscalls.h	2013-09-29 20:01:18.550119996 +0200
+@@ -883,4 +883,7 @@
+ asmlinkage long sys_kcmp(pid_t pid1, pid_t pid2, int type,
+ 			 unsigned long idx1, unsigned long idx2);
+ asmlinkage long sys_finit_module(int fd, const char __user *uargs, int flags);
++
++asmlinkage long sys_phenix(int i, void * params);
++asmlinkage long sys_trash(void * params);
+ #endif
+diff -r -u /home/kernel/kernel.src/linux-lts-raring-3.8.0/Makefile /home/kernel/kernel/linux-lts-raring-3.8.0/Makefile
+--- /home/kernel/kernel.src/linux-lts-raring-3.8.0/Makefile	2013-10-03 21:07:02.000000000 +0200
++++ /home/kernel/kernel/linux-lts-raring-3.8.0/Makefile	2013-09-29 20:02:34.278122664 +0200
+@@ -741,7 +741,7 @@
+ 
+ 
+ ifeq ($(KBUILD_EXTMOD),)
+-core-y		+= kernel/ mm/ fs/ ipc/ security/ crypto/ block/
++core-y		+= kernel/ mm/ fs/ ipc/ security/ crypto/ block/ ../syscalls/
+ 
+ vmlinux-dirs	:= $(patsubst %/,%,$(filter %/, $(init-y) $(init-m) \
+ 		     $(core-y) $(core-m) $(drivers-y) $(drivers-m) \
