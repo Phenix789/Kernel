@@ -6,18 +6,43 @@
  * sudo dpkg -i <our_image>
  * sudo dpkg -i <our headers>
 
-2. Adding our syscall
+2. Adding your syscall
 
  * Edit include/linux/syscalls.h
-   * Add signature of our syscall like : asmlinkage long our_syscall();
+   * Add signature of your syscall like : asmlinkage long your_syscall();
+	at the end of file
 
  * Edit arch/x86/syscall_32.tbl
    * Adapt for your arch
    * Add syscall like : <num> <arch/abi> <name> <entry point>
-   * For previous exemple : <previous num + 1> i386 our_syscall our_syscall
+   * For previous exemple : <previous num + 1> i386 your_syscall_name your_syscall_signature
 
  * Rebuild kernel
+
+ * You can call your syscall by this number
+   * syscall(<number>, <params...>);
 
 3. Adding our module
 
  * Take an existing syscall that we will overloaded
+
+ * Write your own syscall
+
+ * Write init and exit function for your dynamic syscall
+   * init must replace an existing syscall
+   * exit must put old syscall a place (if you want stability of your system)
+   * For find syscall table, you can browse the memory and find a know syscall (number and entry point)
+   * For write in syscall table, you must disable memory protection with write_cr0/read_cr0
+     * Unlock memory : write_cr0(read_cr0() & ~0x10000)
+     * Lock memory : write_cr0(read_cr0() | 0x10000)
+
+ * Compile your module
+   * You can use Makefile existing in diretory of your current kernel (/lib/modules/<kernel>/build)
+
+ * Load your module
+   * Use insmod with your module file (*.ko) or modprobe -a
+
+ * Unload your module
+   * use rmmod with your module name or modprobe -r
+
+ * Test your module and enjoy
